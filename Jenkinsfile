@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker { 
             image 'node:18'
-             args '--user=jenkins'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
+             args '--user=root'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
         }
     }
 
