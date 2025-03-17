@@ -1,6 +1,9 @@
 pipeline {
     agent {
-        docker { image 'node:18' }  // This runs the entire pipeline inside the Node.js 18 container
+        docker { 
+            image 'node:18'
+            args '--user=jenkins'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
+        }
     }
 
     stages {
@@ -9,11 +12,18 @@ pipeline {
                 git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/iiprofit-conestoga/CICD-lab2'
             }
         }
-        
+
         stage('Build & Test') {
             steps {
-                sh 'npm install'
-                sh 'npm test'
+                script {
+                    // Clean up any previous node_modules
+                    sh 'rm -rf node_modules'
+                    sh 'rm -f package-lock.json'
+                    // Install dependencies using npm ci for consistency
+                    sh 'npm ci'
+                    // Run tests
+                    sh 'npm test'
+                }
             }
         }
 
@@ -28,6 +38,12 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution finished.'
+        }
+        success {
+            echo 'The pipeline executed successfully!'
+        }
+        failure {
+            echo 'The pipeline failed.'
         }
     }
 }
