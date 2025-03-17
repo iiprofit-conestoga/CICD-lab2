@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker { 
             image 'node:18'
-            //args '--user=jenkins'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
+            //  args '--user=jenkins'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
         }
     }
 
@@ -20,7 +20,7 @@ pipeline {
                     sh 'rm -rf node_modules'
                     sh 'rm -f package-lock.json'
                     // Install dependencies using npm ci for consistency
-                    sh 'npm ci'
+                    sh 'npm install'
                     // Run tests
                     sh 'npm test'
                 }
