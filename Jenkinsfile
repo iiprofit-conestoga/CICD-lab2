@@ -20,6 +20,14 @@ pipeline {
                     sh 'rm -rf node_modules'
                     sh 'rm -f package-lock.json'
                     // Install dependencies using npm ci for consistency
+
+                    // Set NPM cache directory to workspace
+                    sh 'mkdir -p $HOME/.npm && chmod -R 777 $HOME/.npm'
+                    sh 'export NPM_CONFIG_CACHE=$HOME/.npm'
+            
+                    // Clean npm cache to avoid permission issues
+                    sh 'npm cache clean --force'
+
                     sh 'npm install'
                     // Run tests
                     sh 'npm test'
