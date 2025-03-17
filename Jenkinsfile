@@ -1,10 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'  // Use a suitable Node.js version
+        }
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'cicd', url: 'https://github.com/iiprofit-conestoga/CICD-lab2'
+                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/iiprofit-conestoga/CICD-lab2'
             }
         }
         
@@ -18,14 +22,13 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh 'npm test' // Ensure you have a test script in package.json
+                sh 'npm test'
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying the application...'
-                // Add deployment steps here
             }
         }
     }
