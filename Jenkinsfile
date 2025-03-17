@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker { 
             image 'node:18'
-             args '--user=root'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
+            args '--user=root'  // Ensures that the Docker container uses the Jenkins user (for permission consistency)
         }
     }
 
@@ -30,8 +30,33 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying the application...'
-                // Add your deployment commands here
+                script {
+                    echo 'Building Docker image...'
+                    // Build Docker image
+                    sh 'docker build -t iiprofit/cicd-lab:latest .'
+
+                    echo 'Pushing Docker image to Docker Hub...'
+                    // Push Docker image to Docker Hub using Jenkins credentials
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push iiprofit/cicd-lab:latest
+                        '''
+                    }
+
+                    echo 'Deploying Docker container...'
+                    // Deploy Docker container to the server
+                    withCredentials([sshUserPrivateKey(credentialsId: 'server-ssh-credentials', keyFileVariable: 'SSH_KEY')]) {
+                        sh '''
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no user_iiprofit@185.239.208.33 "
+                            docker pull iiprofit/cicd-lab:latest &&
+                            docker stop cicd-lab || true &&
+                            docker rm cicd-lab || true &&
+                            docker run -d --name cicd-lab -p 3000:3000 iiprofit/cicd-lab:latest
+                        "
+                        '''
+                    }
+                }
             }
         }
     }
